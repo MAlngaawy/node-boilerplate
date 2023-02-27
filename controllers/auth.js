@@ -6,7 +6,6 @@ exports.signup = (req, res) => {
   //Check if the user email istajen in the databse
   User.findOne({ email }).exec((err, user) => {
     if (user) {
-      // the app will end here -with this return- if the user has exest
       return res.status(400).json({
         error: "Email is taken",
       });
