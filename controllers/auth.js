@@ -107,3 +107,14 @@ exports.login = (req, res) => {
     });
   });
 };
+
+exports.updateUserName = async (req, res) => {
+  const { _id, name } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(_id, { name }, { new: true });
+    return res.json(user);
+  } catch {
+    return res.status(500).json({ message: "error.message" });
+  }
+};
