@@ -4,34 +4,6 @@ const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const { sendEmailWithNodemailer } = require("../helper/email");
 
-// exports.signup = (req, res) => {
-//   //Access the request data
-//   const { name, email, password } = req.body;
-
-//   //Check if the user email istajen in the databse
-//   User.findOne({ email }).exec((err, user) => {
-//     if (user) {
-//       return res.status(400).json({
-//         error: "Email is taken",
-//       });
-//     } else {
-//       let newUser = new User({ email, name, password });
-//       newUser.save((err, success) => {
-//         if (err) {
-//           console.log("SIGNUP ERROR", err);
-//           return res.status(400).json({
-//             error: err,
-//           });
-//         }
-
-//         res.json({
-//           message: "Signup success! Please signin",
-//         });
-//       });
-//     }
-//   });
-// };
-
 exports.signup = (req, res) => {
   const { name, email, password } = req.body;
 
@@ -102,4 +74,36 @@ exports.verifyAccount = (req, res) => {
       error: "Somethin went wrong, try again later",
     });
   }
+};
+
+exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email, password }, (err, user) => {
+    if (err || !user) {
+      console.log("Sorry Can't fine user", err);
+      return res.status(400).json({
+        error: "Sorry user with this email not exist",
+      });
+    }
+
+    // Check if the user is autheticate _ check for the matched password_
+    if (!user.authenticate(password)) {
+      console.log("User didn't auth", err);
+      return res.status(400).json({
+        error: "Sorry, e-mail and password don't match",
+      });
+    }
+
+    // generate token to gave it to the user to use it in the next authrization
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    const { _id, email, name, role } = user;
+
+    return res.json({
+      token,
+      user: { _id, email, name, role },
+    });
+  });
 };
