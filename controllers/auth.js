@@ -64,3 +64,42 @@ exports.signup = (req, res) => {
     }
   });
 };
+
+exports.verifyAccount = (req, res) => {
+  const { token } = req.body;
+
+  if (token) {
+    jwt.verify(
+      token,
+      process.env.JWT_ACCOUNT_ACTIVATION,
+      function (err, decoded) {
+        if (err) {
+          console.log("Error while decoding", err);
+          return res.status(401).json({
+            error: "Error,  while decoding the token, Please try again later",
+          });
+        } else {
+          const { name, email, password } = jwt.decode(token);
+          const user = new User({ name, email, password });
+          user.save((err, user) => {
+            if (err) {
+              console.log("Error while add user to the database", err);
+              return res.status(401).json({
+                error:
+                  "Error, saving user in the database, Please try again later",
+              });
+            } else {
+              return res.json({
+                message: "Signup Successed, Please sign in",
+              });
+            }
+          });
+        }
+      }
+    );
+  } else {
+    return res.status(401).json({
+      error: "Somethin went wrong, try again later",
+    });
+  }
+};
