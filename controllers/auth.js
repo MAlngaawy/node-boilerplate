@@ -48,7 +48,7 @@ exports.verifyAccount = (req, res) => {
         if (err) {
           console.log("Error while decoding", err);
           return res.status(401).json({
-            error: "Error,  while decoding the token, Please try again later",
+            error: "Token expired, Please sign up again",
           });
         } else {
           const { name, email, password } = jwt.decode(token);
