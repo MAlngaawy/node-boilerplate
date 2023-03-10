@@ -6,7 +6,7 @@ exports.updateUserName = async (req, res) => {
   const { name } = req.body;
   const authHeader = req.headers["authorization"];
 
-  // verif the token here
+  // verif the token here lol
   const token = authHeader && authHeader.split(" ")[1]; // Skil The bearer word
 
   if (!token) {
