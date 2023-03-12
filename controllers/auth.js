@@ -1,6 +1,7 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const sgMail = require("@sendgrid/mail");
+const { expressjwt } = require("express-jwt");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const { sendEmailWithNodemailer } = require("../helper/email");
 
@@ -118,3 +119,8 @@ exports.updateUserName = async (req, res) => {
     return res.status(500).json({ message: "error.message" });
   }
 };
+
+exports.requireSignin = expressjwt({
+  secret: process.env.JWT_SECRET,
+  algorithms: ["HS256"],
+});
