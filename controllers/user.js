@@ -19,15 +19,20 @@ exports.updateUserName = (req, res) => {
   const user_id = req.auth._id;
   const newName = req.body.name;
   console.log("Body", newName);
-  User.findByIdAndUpdate({ _id: user_id }, { name: newName }, (err, user) => {
-    if (err || !user) {
-      return res.status(400).json({
-        error: err,
+  User.findByIdAndUpdate(
+    { _id: user_id },
+    { name: newName },
+    { new: true }, // this is here to tell the  (findByIdAndUpdate) to return the new version of user
+    (err, user) => {
+      if (err || !user) {
+        return res.status(400).json({
+          error: err,
+        });
+      }
+
+      return res.json({
+        user,
       });
     }
-
-    return res.json({
-      user,
-    });
-  });
+  );
 };

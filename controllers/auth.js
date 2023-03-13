@@ -124,3 +124,23 @@ exports.requireSignin = expressjwt({
   secret: process.env.JWT_SECRET, // req.auth (The decoded JWT payload)
   algorithms: ["HS256"],
 });
+
+exports.adminMiddleware = (req, res, next) => {
+  const user_id = req.auth._id;
+  User.findById({ _id: user_id }).exec((err, user) => {
+    if (err || !user) {
+      return res.status(400).json({
+        error: "User not found",
+      });
+    }
+
+    if (user.role !== "admin") {
+      return res.status(400).json({
+        error: "Admin resource, Access denied",
+      });
+    }
+
+    req.profile = user;
+    next();
+  });
+};
