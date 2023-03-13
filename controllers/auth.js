@@ -121,6 +121,6 @@ exports.updateUserName = async (req, res) => {
 };
 
 exports.requireSignin = expressjwt({
-  secret: process.env.JWT_SECRET,
+  secret: process.env.JWT_SECRET, // req.auth (The decoded JWT payload)
   algorithms: ["HS256"],
 });
