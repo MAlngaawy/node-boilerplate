@@ -21,7 +21,7 @@ exports.sendEmailWithNodemailer = (req, res, emailData) => {
     .then((info) => {
       console.log(`Message sent: ${info.response}`);
       return res.json({
-        message: `Email has been sent to your email. Follow the instruction to activate your account`,
+        message: `Email has been sent to your email. Follow the instruction`,
       });
     })
     .catch((err) => console.log(`Problem sending email: ${err}`));
