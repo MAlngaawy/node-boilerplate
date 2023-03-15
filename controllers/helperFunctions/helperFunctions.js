@@ -70,7 +70,8 @@ exports.forgetPassEmailTemplate = (token) => {
     <h1>Reset Password</h1>
     <p>Dear user,</p>
     <p>We have received a request to reset your password. Please click the button below to reset your password:</p>
-    <a href="http://localhost:3000/auth/reset-password/${token}" class="button">Reset Password</a>
+    <p> This Link will be expired after <strong>  10 minites  </strong>! </p>
+    <a href="http://localhost:3000/reset-password/${token}" class="button">Reset Password</a>
     <p>If you did not request a password reset, please ignore this email.</p>
     <hr />
     <p>This email contains sensitive information and should not be forwarded or shared.</p>

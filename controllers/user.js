@@ -76,3 +76,58 @@ exports.forgetPassword = (req, res) => {
     sendEmailWithNodemailer(req, res, emailData);
   });
 };
+
+exports.resetPassword = (req, res) => {
+  const { token, password } = req.body;
+
+  if (token) {
+    jwt.verify(token, process.env.JWT_RESET_PASSWORD, function (err, decoded) {
+      if (err) {
+        console.log("Error while decoding", err);
+        return res.status(401).json({
+          error: "Token expired, Please sign up again",
+        });
+      } else {
+        const { email } = jwt.decode(token);
+        User.findOne({ email }, (err, user) => {
+          if (err || !user) {
+            console.log("UPDATE PASSWORD ERROR =>", err);
+            return res.status(400).json({
+              error: "User Not found",
+            });
+          }
+
+          if (password) {
+            if (password.length < 6) {
+              return res.status(400).json({
+                error: "Password must be more than 6 charachter",
+              });
+            } else {
+              user.password = password;
+            }
+          } else {
+            return res.status(400).json({
+              error: "Password field is required",
+            });
+          }
+
+          user.save((err, updatedUser) => {
+            if (err) {
+              console.log("USER UPDATE ERROR", err);
+              return res.status(400).json({
+                error: "User update failed",
+              });
+            }
+            updatedUser.hashed_password = undefined;
+            updatedUser.salt = undefined;
+            res.json({ user: updatedUser });
+          });
+        });
+      }
+    });
+  } else {
+    return res.status(401).json({
+      error: "Token is required",
+    });
+  }
+};
