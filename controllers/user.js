@@ -131,3 +131,46 @@ exports.resetPassword = (req, res) => {
     });
   }
 };
+
+exports.changePassword = (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  // Get the authorization header value
+  const token = req.headers.authorization.split(" ")[1];
+
+  // Decode the token and retrieve the email information
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+  const userId = decodedToken._id;
+
+  User.findOne({ _id: userId }, (err, user) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if the old password matches
+    if (!user.authenticate(oldPassword)) {
+      return res.status(401).json({ error: "Invalid old password" });
+    }
+
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 charachter" });
+    }
+
+    // Set the new password and save the user
+    user.password = newPassword;
+    user.save((err) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      return res.status(200).json({ message: "Password changed successfully" });
+    });
+  });
+};
