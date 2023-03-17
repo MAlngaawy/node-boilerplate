@@ -12,13 +12,12 @@ exports.readUserData = (req, res) => {
   User.findById(user_id).exec((err, user) => {
     if (err || !user) {
       console.log(err);
-      res.status(400).json({
+      return res.status(400).json({
         error: "User not found",
       });
     }
-    if (user.hashed_password) {
-      user.hashed_password = undefined;
-    }
+
+    user.hashed_password = undefined;
     user.salt = undefined;
     res.json(user);
   });

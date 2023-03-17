@@ -4,6 +4,7 @@ const sgMail = require("@sendgrid/mail");
 const { expressjwt } = require("express-jwt");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const { sendEmailWithNodemailer } = require("../helper/email");
+const { OAuth2Client } = require("google-auth-library");
 
 exports.signup = (req, res) => {
   const { name, email, password } = req.body;
@@ -143,4 +144,63 @@ exports.adminMiddleware = (req, res, next) => {
     req.profile = user;
     next();
   });
+};
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+exports.googleAuth = (req, res) => {
+  const { idToken } = req.body;
+  client
+    .verifyIdToken({ idToken, audience: process.env.GOOGLE_CLIENT_ID })
+    .then((response) => {
+      const { email_verified, name, email } = response.getPayload();
+      if (email_verified) {
+        User.findOne({ email }).exec((err, user) => {
+          if (user) {
+            // generate a token to send to user
+            const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+              expiresIn: "7d",
+            });
+            const { _id, email, name, role } = user;
+            return res.json({
+              token,
+              user: { _id, email, name, role },
+            });
+          } else {
+            let password = email + process.env.GOOGLE_CLIENT_ID; // generate a random password
+            const user = new User({ password, email, name });
+            user.save((err, user) => {
+              if (err) {
+                console.log("Record google auth user to database error ", err);
+                return res.status(500).json({
+                  error: "Server Error, Please Try again later",
+                });
+              }
+              // generate a token to send to user
+              const token = jwt.sign(
+                { _id: user._id },
+                process.env.JWT_SECRET,
+                {
+                  expiresIn: "7d",
+                }
+              );
+              const { _id, email, name, role } = user;
+              return res.json({
+                token,
+                user: { _id, email, name, role },
+              });
+            });
+          }
+        });
+      } else {
+        return res.status(400).json({
+          error: "Google login faild, Try again",
+        });
+      }
+    })
+    .catch((err) => {
+      console.log("verify Id Token Error", err);
+      return res.status(500).json({
+        error: "Internal server error",
+      });
+    });
 };

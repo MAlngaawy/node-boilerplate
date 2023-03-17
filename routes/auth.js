@@ -6,6 +6,7 @@ const {
   verifyAccount,
   login,
   updateUserName,
+  googleAuth,
 } = require("../controllers/auth");
 // Import validators
 const {
@@ -17,6 +18,7 @@ const { runValidation } = require("../validators");
 router.post("/signup", userSignupValidator, runValidation, signup);
 router.post("/verify-account", verifyAccount);
 router.post("/login", userSigninValidator, runValidation, login);
+router.post("/google-auth", googleAuth);
 router.patch("/update-name", updateUserName);
 
 module.exports = router;
