@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
+const fetch = require("node-fetch"); // use old version 2 because the new version doesn't support require
 const sgMail = require("@sendgrid/mail");
 const { expressjwt } = require("express-jwt");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -199,6 +200,57 @@ exports.googleAuth = (req, res) => {
     })
     .catch((err) => {
       console.log("verify Id Token Error", err);
+      return res.status(500).json({
+        error: "Internal server error",
+      });
+    });
+};
+
+exports.facebookAuth = (req, res) => {
+  const { userID, accessToken } = req.body;
+
+  url = `https://graph.facebook.com/v13.0/${userID}?fields=name,email&access_token=${accessToken}`;
+
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      const { name, email, id } = data;
+      User.findOne({ email }).exec((err, user) => {
+        if (user) {
+          // generate a token to send to user
+          const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+            expiresIn: "7d",
+          });
+          const { _id, email, name, role } = user;
+          return res.json({
+            token,
+            user: { _id, email, name, role },
+          });
+        } else {
+          let password = email + process.env.GOOGLE_CLIENT_ID; // generate a random password
+          const user = new User({ password, email, name });
+          user.save((err, user) => {
+            if (err) {
+              console.log("Record google auth user to database error ", err);
+              return res.status(500).json({
+                error: "Server Error, Please Try again later",
+              });
+            }
+            // generate a token to send to user
+            const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+              expiresIn: "7d",
+            });
+            const { _id, email, name, role } = user;
+            return res.json({
+              token,
+              user: { _id, email, name, role },
+            });
+          });
+        }
+      });
+    })
+    .catch((err) => {
+      console.log("ERROR WHILE FETCHING FACEBOOK USER DATA", err);
       return res.status(500).json({
         error: "Internal server error",
       });

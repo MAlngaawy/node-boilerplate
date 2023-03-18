@@ -61,6 +61,12 @@ exports.forgetPassword = (req, res) => {
       });
     }
 
+    if (!user) {
+      return res.status(401).json({
+        error: "User Doesn't exist",
+      });
+    }
+
     // if no error
     const token = jwt.sign({ email }, process.env.JWT_RESET_PASSWORD, {
       expiresIn: "10m",
