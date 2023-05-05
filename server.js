@@ -24,11 +24,11 @@ const userRoutes = require("./routes/user");
 // App middleware
 app.use(morgan("dev"));
 app.use(bodyParser.json()); // you can see whats happening when server receve request (the request retails)
-// app.use(cors()); // allows all origins
+
 if ((process.env.NODE_ENV = "development")) {
-  app.use(
-    cors({ origin: ["http://localhost:3000", "https://localhost:3000"] })
-  ); // Allow just this URL to make request
+  app.use(cors({ origin: [process.env.CLIENT_URL] })); // Allow just this URL to make request
+} else {
+  app.use(cors()); // allows all origins
 }
 
 // middleware
